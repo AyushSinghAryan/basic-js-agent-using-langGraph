@@ -1,0 +1,78 @@
+import dotenv from "dotenv";
+dotenv.config();
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+import { MemorySaver } from "@langchain/langgraph";
+// creating a weather fetching tool 
+
+const weatherTool = tool(
+
+    async ({ query }) => {
+        console.log("Fetching weather for query:", query);
+        // in nomal case we will fetch weather from some api but here we are just returning a dummy response for demonstration purposes.
+        return "The weather in Tokyo is a sunny."
+    },
+    {
+        name: "weather",
+        description: "Get the weather in a given location.",
+        schema: z.object({
+            query: z.string().describe("The query to use in search."),
+        })
+    }
+
+)
+// in query we have a and b number if tool doing some math , query will use in search
+
+//! from description , LLM will understand when to use this tool ,
+// schema will use how to call this tool and what parameters to pass to it. In this example, we are not providing any parameters, so the tool will be called without any arguments. 
+// zod define the schema also validate with typescript
+const model = new ChatGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_API_KEY,
+    model: "models/gemini-2.5-flash",
+    temperature: 0,
+});
+
+
+const checkpointSaver = new MemorySaver();
+
+
+const agent = createReactAgent({
+    llm: model,
+    tools: [weatherTool],
+    checkpointSaver
+});
+// what make an agent powerful is the tools it has access to, which can be used to perform various tasks. In this example, we are not providing any tools, so the agent will only be able to respond to user input based on its language model capabilities.
+// currently tools are empty  
+const result = await agent.invoke({
+    messages: [
+        {
+            role: "user",
+            content: "What is the weather in Tokyo?",
+        },
+    ],
+}, {
+    configurable: { thread_id: 42 }
+}
+);
+const followup = await agent.invoke({
+    messages: [
+        {
+            role: "user",
+            content: "What city is that for?",
+        },
+    ],
+},
+    {
+        configurable: { thread_id: 42 }
+    }
+    // configurable is helping us to maintain the context of the conversation across multiple invocations of the agent. By using the same thread_id, we can ensure that the agent retains the conversation history and can provide more coherent responses based on previous interactions.
+);
+
+
+// inside content we have input , that input reaches first  the LLM model gemini 
+console.log(result.messages.at(-1)?.content);
+console.log("followup", followup.messages.at(-1)?.content);
+// -1 is used to access the last message in the array, which is the agent's response to the user's input. 

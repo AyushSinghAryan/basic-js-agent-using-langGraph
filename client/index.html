@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Agent</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Weather Agent</h1>
+        <p class="subtitle">Ask about the weather in any city</p>
+        
+        <div class="chat-container" id="chatContainer">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <form id="weatherForm" class="input-container">
+            <input 
+                type="text" 
+                id="queryInput" 
+                placeholder="e.g., What's the weather in Tokyo?" 
+                autocomplete="off"
+                required
+            >
+            <button type="submit" id="submitBtn">
+                <span class="btn-text">Send</span>
+                <span class="btn-loader" style="display: none;">...</span>
+            </button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
